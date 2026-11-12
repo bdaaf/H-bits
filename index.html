@@ -90,6 +90,18 @@ input[type=text],select{width:100%;background:#17100a;border:1px solid var(--edg
 #toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top));transform:translate(-50%,-90px);background:var(--gold);color:#2a1d04;font:700 15px Georgia,serif;padding:10px 18px;border-radius:999px;z-index:20;transition:transform .3s;box-shadow:0 6px 24px #0008;max-width:90vw;text-align:center}
 #toast.on{transform:translate(-50%,0)}
 .hero,.chk{border:3px double #8a6a3a}.hc,.attr,.sug,.stat,.ac,.done-ck{border-radius:8px}.rank{border-radius:6px 6px 24px 24px}
+#wiz{display:none;position:fixed;inset:0;z-index:15;overflow:auto;background:radial-gradient(120% 60% at 50% -10%,#3a2414 0,var(--void) 60%);padding-top:env(safe-area-inset-top)}
+#wiz.on{display:block}
+.wc{max-width:520px;margin:0 auto;padding:28px 18px calc(40px + env(safe-area-inset-bottom))}
+.wc h1{font-size:24px;line-height:1.2}
+.wc p{margin:10px 0 4px}
+.opt{display:block;width:100%;text-align:left;margin-top:10px;padding:14px;border-radius:8px;border:1px solid var(--edge);background:var(--panel);color:var(--txt);font:15px system-ui;cursor:pointer}
+.opt.on{border-color:var(--blue);background:#3a2a16;box-shadow:0 0 12px #d9ab4f30}
+.wc .acts{margin-top:22px}
+.rvc{border:1px solid var(--edge);border-radius:8px;background:var(--panel);padding:12px;margin-top:10px}
+.rvc .t{display:flex;align-items:center;gap:8px;font:600 15px Georgia,serif;margin-bottom:8px}
+.mini{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.mini .btn{padding:7px 12px;font-size:13px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -97,6 +109,7 @@ input[type=text],select{width:100%;background:#17100a;border:1px solid var(--edg
 <main id="app"></main>
 <nav id="nav"></nav>
 <div id="ov"><div id="sheet"></div></div>
+<div id="wiz"></div>
 <div id="toast"></div>
 <script>
 const K='thesystem_v2',XP=[10,20,35,50,75],DN=['Muy fácil','Fácil','Intermedia','Difícil','Especial'];
@@ -133,6 +146,7 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 const day=n=>{const d=new Date();d.setDate(d.getDate()-n);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 let S=null;try{S=JSON.parse(localStorage.getItem(K))}catch(e){}
 if(!S||!S.h)S={s:day(0),h:['uno','agua','die','pen','lee'].map(id=>mk(T.find(t=>t[0]==id))),l:{},ck:{}};
+const CM=day(0).slice(0,7);if(!S.mo)S.mo={key:CM,goal:''};
 let tab='hoy',seg='h';
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
 const act=()=>S.h.filter(h=>!h.x);
@@ -148,7 +162,8 @@ function dots(id){let s='';for(let i=6;i>=0;i--)s+='<b class="'+(done(id,i)?'on'
 function card(h){const st=streak(h.id);return'<div class="hc'+(done(h.id)?' done':'')+(h.q?' q':'')+'" data-a="tog" data-id="'+h.id+'">'+(st?'<span class="fl">🔥 '+st+'</span>':'')+'<button class="inf" data-a="info" data-id="'+h.id+'" aria-label="Detalle">ⓘ</button><div class="ic">'+h.i+'</div><div class="nm">'+esc(h.n)+'</div><div class="fr">'+esc(h.f)+'</div>'+dots(h.id)+'</div>'}
 function vHoy(){const c=calc(),t=day(0),n=Math.floor((new Date(t+'T00:00')-new Date(S.s+'T00:00'))/864e5)+1;
  const lvx=c.tot%100;
- let h='<div class="hero"><div class="row"><div class="rank">'+c.rk+'</div><div style="flex:1"><h1>Nivel '+c.lv+'</h1><div class="sub">'+(n<=30?'Día '+n+' de 30':'Plan de 30 días completado, día '+n)+'. Racha: '+gstreak()+' días</div></div></div><div class="bar"><i style="width:'+lvx+'%"></i></div><div class="sub" style="margin-top:6px">'+lvx+' de 100 XP para el siguiente nivel</div></div>';
+ let h='<div class="hero"><div class="row"><div class="rank">'+c.rk+'</div><div style="flex:1"><h1>'+(S.ev&&S.ev.name?esc(S.ev.name)+', nivel ':'Nivel ')+c.lv+'</h1><div class="sub">'+MN[+t.slice(5,7)-1]+', día '+(+t.slice(8))+' de '+dimOf(t.slice(0,7))+'. Racha: '+gstreak()+' días</div></div></div><div class="bar"><i style="width:'+lvx+'%"></i></div><div class="sub" style="margin-top:6px">'+lvx+' de 100 XP para el siguiente nivel</div></div>';
+ h+='<div class="done-ck" style="margin-top:12px;cursor:pointer" data-a="goal">🎯 '+(S.mo.goal?'Meta del mes: '+esc(S.mo.goal):'Fijar la meta del mes')+'</div>';
  if(!S.ck[t])h+='<h2>Cofres del día</h2><div class="chk"><h3>Un nuevo amanecer</h3><div class="sub">Elige una vasija y reclama tu botín de XP.</div><div class="chests"><button class="chest" data-a="chest">🏺</button><button class="chest" data-a="chest">🏺</button><button class="chest" data-a="chest">🏺</button></div></div>';
  else h+='<div class="done-ck" style="margin-top:12px">Botín del día reclamado: +'+S.ck[t]+' XP</div>';
  const hs=act(),dn=hs.filter(x=>done(x.id)).length;
@@ -168,7 +183,9 @@ function vPer(){const c=calc(),s={n:c.n,g:gstreak(),lv:c.lv,ck:c.ck};
  let h='<div class="stats"><div class="stat"><b>'+c.tot+'</b><span>XP total</span></div><div class="stat"><b>'+c.n+'</b><span>Misiones</span></div><div class="stat"><b>'+s.g+'</b><span>Mejor racha</span></div></div><h2>Atributos</h2>';
  for(const k in ATTR){const x=c.ax[k]||0;h+='<div class="attr"><div class="ic">'+ATTR[k][1]+'</div><div class="m"><div class="t"><span>'+ATTR[k][0]+'</span><span>Nv. '+(Math.floor(x/50)+1)+'</span></div><div class="bar"><i style="width:'+(x%50)*2+'%"></i></div></div></div>'}
  h+='<h2>Hazañas</h2><div class="ach">'+AC.map(a=>'<div class="ac'+(a[2](s)?' on':'')+'"><span>'+a[0]+'</span>'+a[1]+'</div>').join('')+'</div>';
- h+='<h2>Datos</h2><div class="acts"><button class="btn" data-a="exp">Copiar respaldo</button><button class="btn" data-a="imp">Restaurar</button></div><div class="acts"><button class="btn d" data-a="rst">Reiniciar todo</button></div>';
+ const ms=mst(CM);h+='<h2>Este mes <small>'+mname(CM)+'</small></h2>'+(S.mo.goal?'<div class="done-ck" style="margin-bottom:8px">🎯 '+esc(S.mo.goal)+'</div>':'')+(ms.hs.length?ms.hs.map(o=>'<div class="attr"><div class="ic">'+o.h.i+'</div><div class="m"><div class="t"><span>'+esc(o.h.n)+'</span><span>'+o.d+' de '+o.t+'</span></div><div class="bar"><i style="width:'+Math.round(o.r*100)+'%"></i></div></div></div>').join(''):'<div class="done-ck">Aún no tienes misiones activas.</div>')+'<div class="acts"><button class="btn" data-a="goal">Meta del mes</button><button class="btn" data-a="ropen">Revisar este mes</button></div>';
+ const ks=Object.keys(S.rv||{}).sort().reverse();if(ks.length)h+='<h2>Meses anteriores</h2>'+ks.map(k=>{const r=S.rv[k];return'<div class="sug"><div class="ic">📜</div><div><b>'+mname(k)+' '+k.slice(0,4)+'</b><div class="sub">'+r.xp+' XP, '+r.n+' misiones, '+r.days+' días activos, mejor racha '+r.best+(r.goal?'. Meta: '+esc(r.goal):'')+'</div></div></div>'}).join('');
+ h+='<h2>Datos</h2><div class="acts"><button class="btn" data-a="exp">Copiar respaldo</button><button class="btn" data-a="imp">Restaurar</button></div><div class="acts"><button class="btn" data-a="wopen">Repetir evaluación</button></div><div class="acts"><button class="btn d" data-a="rst">Reiniciar todo</button></div>';
  return h}
 function render(){const v={hoy:vHoy,hab:vHab,per:vPer}[tab]();$('#app').innerHTML=v;
  $('#nav').innerHTML=[['hoy','🔥','Hoy'],['hab','➕','Misiones'],['per','🛡️','Héroe']].map(x=>'<button class="'+(tab==x[0]?'on':'')+'" data-a="tab" data-t="'+x[0]+'"><span>'+x[1]+'</span>'+x[2]+'</button>').join('')}
@@ -184,6 +201,66 @@ function newf(){sheet('<h1 style="font-size:21px">Crear tu misión</h1><label>No
 function addH(id){const o=S.h.find(x=>x.id==id);if(o)o.x=0;else S.h.push(mk(T.find(t=>t[0]==id)));save();toast('Misión añadida')}
 function tog(id){const h=S.h.find(x=>x.id==id),L=S.l[id]=S.l[id]||{},t=day(0),b=calc().lv;
  if(L[t]){delete L[t];toast('Misión desmarcada')}else{L[t]=XP[h.d];const a=calc();toast(a.lv>b?'¡Subiste al nivel '+a.lv+'!':'+'+XP[h.d]+' XP')}save()}
+const Q=[
+{k:'name',t:'¿Cómo te llamas, héroe?',type:'text'},
+{k:'pr',t:'¿Qué áreas quieres mejorar primero?',s:'Elige hasta 3, la primera es la más importante.',max:3,o:[['sal','💪 Salud y actividad física'],['fin','💰 Finanzas y ahorro'],['const','🔁 Constancia y hábitos'],['hig','🪥 Higiene personal'],['apr','🐍 Aprendizaje y programación'],['pro','🗂️ Productividad'],['des','📖 Desarrollo personal'],['cont','🎬 Creación de contenido']]},
+{k:'pain',t:'¿Qué te cuesta hoy?',s:'Marca todo lo que aplique, sin juicios.',o:[['die','Lavarme los dientes a diario'],['dus','Mantener una rutina de aseo'],['gas','Registrar mis gastos'],['aho','Ahorrar'],['ord','Mantener mi espacio ordenado'],['pen','Organizar mis pendientes'],['ide','Avanzar en mis proyectos'],['azu','Tomar menos bebidas azucaradas'],['cam','Moverme o caminar'],['uno','Mantener hábitos varios días']]},
+{k:'goal',t:'¿Qué metas quieres lograr?',s:'Marca las que quieras.',o:[['deu','Organizar mis deudas'],['aho','Crear un fondo de ahorro'],['py','Aprender análisis de datos (Python y SQL)'],['cont','Publicar contenido'],['lee','Leer más'],['agua','Beber más agua']]},
+{k:'dif',t:'¿Con qué dificultad empezamos?',s:'Puedes subirla cuando quieras.',one:1,o:[[0,'Muy fácil: acciones de uno o dos minutos'],[1,'Fácil: acciones cortas'],[2,'Moderada: retos un poco mayores']]},
+{k:'tim',t:'¿Cuánto tiempo tienes al día?',s:'Tus horarios pueden variar: las misiones se hacen a cualquier hora.',one:1,o:[[4,'Unos 15 minutos'],[6,'Unos 30 minutos'],[8,'45 minutos o más']]},
+{k:'mg',t:'¿Cuál es tu meta principal de este mes?',s:'Puede ser algo simple. Puedes dejarlo vacío.',type:'text'}
+];
+const GM={deu:['deu'],aho:['aho'],py:['py','sql','dat'],cont:['ide','gui','pub'],lee:['lee'],agua:['agua']};
+function plan(ev){const pr=ev.pr||[],sc={};
+ const c=T.filter(t=>t[4]<=ev.dif).map(t=>{let p=0;const i=pr.indexOf(t[3]);if(i>=0)p+=4-i;if((ev.pain||[]).includes(t[0]))p+=5;if((ev.goal||[]).some(g=>(GM[g]||[]).includes(t[0])))p+=5;return[t,p]}).sort((a,b)=>b[1]-a[1]||a[0][4]-b[0][4]);
+ const out=['uno'],cnt={const:1};
+ for(const[t,p]of c){if(out.length>=ev.tim)break;if(p<=0||out.includes(t[0]))continue;const cc=cnt[t[3]]||0;if(cc>=(pr.includes(t[3])?3:2))continue;out.push(t[0]);cnt[t[3]]=cc+1}
+ for(const id of['agua','die','pen']){if(out.length>=3)break;if(!out.includes(id))out.push(id)}
+ return out}
+let wz={step:0,a:{}};
+function openWiz(){wz={step:0,a:{name:'',pr:[],pain:[],goal:[],dif:null,tim:null,mg:''}};$('#wiz').classList.add('on');wiz()}
+function wiz(){const st=wz.step,e=$('#wiz');let h='';
+ if(st==0)h='<div class="wc" style="text-align:center;padding-top:60px"><div class="rank" style="margin:0 auto 18px">⚔</div><h1>THE SYSTEM te ha elegido</h1><p class="sub">Responde 7 preguntas cortas y forjaré tu plan del mes. Empezarás con misiones pequeñas, y la dificultad solo sube cuando estés listo.</p><div class="acts"><button class="btn" data-a="wskip">Omitir</button><button class="btn p" data-a="wn">Comenzar</button></div></div>';
+ else if(st<=Q.length){const q=Q[st-1];h='<div class="wc"><div class="bar"><i style="width:'+Math.round(st/(Q.length+1)*100)+'%"></i></div><h1 style="margin-top:20px">'+q.t+'</h1>'+(q.s?'<p class="sub">'+q.s+'</p>':'');
+  if(q.type=='text')h+='<input type="text" id="wnm" maxlength="20" style="margin-top:14px" value="'+esc(wz.a[q.k]||'')+'" placeholder="'+(q.k=='name'?'Tu nombre o apodo':'Ej.: Anotar mis gastos 3 veces por semana')+'">';
+  else h+=q.o.map(o=>{const v=wz.a[q.k],on=q.one?v===o[0]:v.includes(o[0]);return'<button class="opt'+(on?' on':'')+'" data-a="wo" data-v="'+o[0]+'">'+o[1]+'</button>'}).join('');
+  h+='<div class="acts"><button class="btn" data-a="wb">Atrás</button><button class="btn p" data-a="wn">Siguiente</button></div></div>'}
+ else{const ids=plan(wz.a);h='<div class="wc"><div class="bar"><i style="width:100%"></i></div><h1 style="margin-top:20px">Tu plan inicial</h1><p class="sub" style="margin-bottom:12px">'+ids.length+' misiones para empezar. El resto del catálogo sigue disponible y el heraldo te sugerirá nuevas cuando estés listo.</p>'+ids.map(id=>{const t=T.find(x=>x[0]==id);return'<div class="sug"><div class="ic">'+t[1]+'</div><div><b>'+t[2]+'</b><div class="sub">'+CAT[t[3]][0]+', '+XP[t[4]]+' XP</div></div></div>'}).join('')+'<div class="acts"><button class="btn" data-a="wb">Atrás</button><button class="btn p" data-a="wf">Comenzar la aventura</button></div></div>'}
+ e.innerHTML=h;e.scrollTop=0}
+function wnext(){const st=wz.step;if(st>=1&&st<=Q.length&&Q[st-1].type=='text')wz.a[Q[st-1].k]=($('#wnm').value||'').trim();
+ if(st>=1&&st<=Q.length){const q=Q[st-1];if(q.k=='pr'&&!wz.a.pr.length){toast('Elige al menos un área');return}if(q.one&&wz.a[q.k]===null){toast('Elige una opción');return}}
+ wz.step++;wiz()}
+function wopt(v){const q=Q[wz.step-1];if(q.one){wz.a[q.k]=Number(v)}else{const a=wz.a[q.k],i=a.indexOf(v);if(i>=0)a.splice(i,1);else{if(q.max&&a.length>=q.max){toast('Máximo '+q.max+' áreas');return}a.push(v)}}wiz()}
+function wfin(){const ev=wz.a,ids=plan(ev),fresh=!Object.keys(S.l).length;if(fresh){S.h=[];S.s=day(0)}
+ ids.forEach(id=>{const o=S.h.find(x=>x.id==id);if(o)o.x=0;else S.h.push(mk(T.find(t=>t[0]==id)))});
+ S.ev={name:ev.name,pr:ev.pr,pain:ev.pain,goal:ev.goal,dif:ev.dif,tim:ev.tim,date:day(0)};S.mo={key:CM,goal:ev.mg||(S.mo&&S.mo.key==CM?S.mo.goal:'')};save();$('#wiz').classList.remove('on');tab='hoy';render();scrollTo(0,0);toast('Tu plan está listo')}
+const MN=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const mname=k=>MN[+k.slice(5,7)-1];
+const dimOf=k=>new Date(+k.slice(0,4),+k.slice(5,7),0).getDate();
+function tgt(h,dim){const f=h.f||'';if(/diaria/i.test(f))return Math.round(dim*.8);const m=f.match(/(\d+)/);return Math.max(1,Math.round((m?+m[1]:5)*dim/7))}
+function mst(k){const dim=dimOf(k);let xp=0,n=0,days=0,best=0,cur=0;const hs=act().map(h=>({h,d:0}));
+ for(let d=1;d<=dim;d++){const dk=k+'-'+String(d).padStart(2,'0');let any=false;hs.forEach(o=>{const x=S.l[o.h.id]&&S.l[o.h.id][dk];if(x){o.d++;n++;xp+=x;any=true}});if(S.ck[dk])xp+=S.ck[dk];if(any){days++;cur++;best=Math.max(best,cur)}else cur=0}
+ return{dim,xp,n,days,best,hs:hs.map(o=>{const t=tgt(o.h,dim);return{h:o.h,d:o.d,t,r:Math.min(1,o.d/t)}})}}
+const REC={up:'Consolidada. Puedes subir la dificultad.',keep:'En progreso. Sigue otro mes.',chg:'No se consolidó. Cámbiala por otra más simple o quítala.'};
+const recOf=r=>r>=.8?'up':r>=.4?'keep':'chg';
+let rv=null;
+function openRev(k){const st=mst(k),a={};st.hs.forEach(o=>a[o.h.id]=recOf(o.r));rv={k,st,step:0,a,add:[]};$('#wiz').classList.add('on');rview()}
+function rview(){const e=$('#wiz'),st=rv.st;let h;
+ if(rv.step==0){h='<div class="wc"><h1>Revisión de '+mname(rv.k).toLowerCase()+'</h1><p class="sub">Mira cómo te fue y decide qué hacer con cada misión el mes que viene.</p><div class="stats" style="margin-top:14px"><div class="stat"><b>'+st.xp+'</b><span>XP ganada</span></div><div class="stat"><b>'+st.n+'</b><span>Misiones</span></div><div class="stat"><b>'+st.days+'</b><span>Días activos</span></div></div><p class="sub">Mejor racha del mes: '+st.best+' días</p>';
+  if(!st.hs.length)h+='<div class="done-ck" style="margin-top:12px">No tienes misiones activas. Pasa al siguiente paso para elegir nuevas.</div>';
+  st.hs.forEach(o=>{const q=o.h,a=rv.a[q.id];h+='<div class="rvc"><div class="t"><span style="font-size:24px">'+q.i+'</span><span style="flex:1">'+esc(q.n)+'</span><span class="sub">'+o.d+' de '+o.t+' días</span></div><div class="bar"><i style="width:'+Math.round(o.r*100)+'%"></i></div><div class="sub" style="margin-top:6px">'+REC[recOf(o.r)]+'</div><div class="mini">'+[['keep','Mantener'],['up','Subir'],['chg','Cambiar'],['del','Quitar']].filter(x=>x[0]!='up'||q.d<4).map(x=>'<button class="btn'+(a==x[0]?' p':'')+'" data-a="ra" data-id="'+q.id+'" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div></div>'});
+  h+='<div class="acts"><button class="btn" data-a="rl">Más tarde</button><button class="btn p" data-a="rn">Siguiente</button></div></div>'}
+ else{const gone=new Set(st.hs.filter(o=>rv.a[o.h.id]=='chg'||rv.a[o.h.id]=='del').map(o=>o.h.id)),keep=new Set(st.hs.filter(o=>!gone.has(o.h.id)).map(o=>o.h.id)),cc=st.hs.filter(o=>rv.a[o.h.id]=='chg').map(o=>o.h.c),pr=(S.ev&&S.ev.pr)||[];
+  const pool=T.filter(t=>!keep.has(t[0])&&!gone.has(t[0])).map(t=>{let p=(cc.includes(t[3])?6:0)+Math.max(0,3-pr.indexOf(t[3]))*(pr.includes(t[3])?1:0)-t[4];return[t,p]}).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  h='<div class="wc"><h1>Objetivos de '+mname(CM).toLowerCase()+'</h1><p class="sub">Escribe tu meta del mes y elige misiones nuevas. Las primeras reemplazan lo que cambiaste o se ajustan a tus áreas. Con poco tiempo diario, suma pocas.</p><label>Meta del mes</label><input type="text" id="rg" maxlength="80" value="'+esc(rv.goal||'')+'" placeholder="Ej.: Anotar mis gastos 3 veces por semana"><label>Misiones sugeridas</label>'+pool.map(([t])=>'<div class="sug"><div class="ic">'+t[1]+'</div><div><b>'+t[2]+'</b><div class="sub">'+CAT[t[3]][0]+', '+XP[t[4]]+' XP, '+t[5]+'</div></div><button class="btn'+(rv.add.includes(t[0])?' p':' b')+'" data-a="rt" data-id="'+t[0]+'">'+(rv.add.includes(t[0])?'Añadida':'Añadir')+'</button></div>').join('')+'<div class="acts"><button class="btn" data-a="rb">Atrás</button><button class="btn p" data-a="rf">Comenzar el mes</button></div></div>'}
+ e.innerHTML=h;e.scrollTop=0}
+function rfin(){const g=($('#rg')?$('#rg').value:'').trim(),st=rv.st;
+ const rows=st.hs.map(o=>({n:o.h.n,i:o.h.i,d:o.d,t:o.t,a:rv.a[o.h.id]}));
+ st.hs.forEach(o=>{const a=rv.a[o.h.id];if(a=='up')o.h.d=Math.min(4,o.h.d+1);else if(a=='chg'||a=='del')o.h.x=1});
+ rv.add.forEach(id=>{const o=S.h.find(x=>x.id==id);if(o)o.x=0;else S.h.push(mk(T.find(t=>t[0]==id)))});
+ S.rv=S.rv||{};S.rv[rv.k]={xp:st.xp,n:st.n,days:st.days,best:st.best,rows,goal:(S.mo&&S.mo.key==rv.k&&S.mo.goal)||'',date:day(0)};
+ S.mo={key:CM,goal:g};save();$('#wiz').classList.remove('on');tab='hoy';render();scrollTo(0,0);toast('Mes iniciado')}
+function goalSheet(){sheet('<h1 style="font-size:21px">Meta del mes</h1><p class="sub" style="margin:8px 0 0">Una frase sobre lo que quieres lograr en '+mname(CM).toLowerCase()+'.</p><label>Tu meta</label><input type="text" id="gi" maxlength="80" value="'+esc(S.mo.goal||'')+'" placeholder="Ej.: Anotar mis gastos 3 veces por semana"><div class="acts"><button class="btn" data-a="x">Cancelar</button><button class="btn p" data-a="sgoal">Guardar</button></div>')}
 document.addEventListener('click',e=>{const el=e.target.closest('[data-a]');if(!el){if(e.target.id=='ov')close();return}
  const a=el.dataset.a,id=el.dataset.id;e.stopPropagation();
  if(a=='tab'){tab=el.dataset.t;close();render();scrollTo(0,0)}
@@ -197,13 +274,29 @@ document.addEventListener('click',e=>{const el=e.target.closest('[data-a]');if(!
  else if(a=='chest'){const t=day(0),b=[0,5,10,15,20][Math.floor(Math.random()*5)],lv=calc().lv;S.ck[t]=5+b;save();toast('Vasija abierta: +'+(5+b)+' XP');if(calc().lv>lv)setTimeout(()=>toast('¡Subiste al nivel '+calc().lv+'!'),2300);render()}
  else if(a=='newf')newf();
  else if(a=='x')close();
+ else if(a=='wopen')openWiz();
+ else if(a=='wskip'){S.ev={skip:1,date:day(0)};save();$('#wiz').classList.remove('on')}
+ else if(a=='wn')wnext();
+ else if(a=='wb'){if(wz.step>0){wz.step--;wiz()}}
+ else if(a=='wo')wopt(el.dataset.v);
+ else if(a=='wf')wfin();
+ else if(a=='ra'){rv.a[id]=el.dataset.v;rview()}
+ else if(a=='rn'){rv.step=1;rv.goal=S.mo.goal||'';rview()}
+ else if(a=='rb'){rv.goal=($('#rg')?$('#rg').value:'');rv.step=0;rview()}
+ else if(a=='rt'){const i=rv.add.indexOf(id);if(i>=0)rv.add.splice(i,1);else rv.add.push(id);rv.goal=$('#rg').value;rview()}
+ else if(a=='rf')rfin();
+ else if(a=='rl')$('#wiz').classList.remove('on');
+ else if(a=='ropen'){close();openRev(CM)}
+ else if(a=='goal')goalSheet();
+ else if(a=='sgoal'){S.mo.goal=($('#gi').value||'').trim();save();close();render()}
  else if(a=='mk'){const n=$('#cn').value.trim();if(!n){toast('Escribe un nombre');return}
   S.h.push({id:'c'+Date.now(),i:$('#cq').checked?'🚫':'⭐',n,c:$('#cc').value,d:+$('#cd').value,f:$('#cf').value.trim()||'diaria',w:'Misión creada por ti.',q:$('#cq').checked?1:0,custom:1});save();close();render();toast('Misión creada')}
  else if(a=='exp'){const j=JSON.stringify(S);(navigator.clipboard?navigator.clipboard.writeText(j):Promise.reject()).then(()=>toast('Respaldo copiado')).catch(()=>prompt('Copia tu respaldo:',j))}
- else if(a=='imp'){const j=prompt('Pega aquí tu respaldo:');if(j){try{const o=JSON.parse(j);if(!o.h||!o.l)throw 0;S=o;save();render();toast('Datos restaurados')}catch(x){toast('El respaldo no es válido')}}}
+ else if(a=='imp'){const j=prompt('Pega aquí tu respaldo:');if(j){try{const o=JSON.parse(j);if(!o.h||!o.l)throw 0;S=o;if(!S.mo)S.mo={key:CM,goal:''};save();render();toast('Datos restaurados')}catch(x){toast('El respaldo no es válido')}}}
  else if(a=='rst'){if(confirm('¿Borrar todo tu progreso?')){localStorage.removeItem(K);location.reload()}}
 });
 render();
+if(!S.ev)openWiz();else if(S.mo.key!==CM)openRev(S.mo.key);
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script>
 </body>
